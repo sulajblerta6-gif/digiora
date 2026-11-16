@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="sq">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DIGIORA – Asistenti pedagogjik</title>
+<style>
+:root{--navy:#10243a;--teal:#18b6ad;--bg:#f3f6f8;--ink:#243648;--muted:#657789;--line:#dce5ea}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font:15px Arial,sans-serif;color:var(--ink)}
+header{background:var(--navy);color:#fff;padding:18px 5%;display:flex;justify-content:space-between;align-items:center}
+.logo{font-size:25px;font-weight:800;letter-spacing:2px}.logo small{display:block;font-size:11px;letter-spacing:0;color:#c7dce4;font-weight:400;margin-top:4px}
+main{max-width:1050px;margin:28px auto;padding:0 16px}.hero{background:linear-gradient(110deg,#10243a,#1b5a65);color:#fff;border-radius:16px;padding:25px}.hero p{color:#d9e8eb;line-height:1.5}
+.panel{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;margin:16px 0}
+h1{margin:8px 0 10px;font-size:29px}h2{color:var(--navy);margin:0 0 10px}.muted{color:var(--muted);line-height:1.5}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}label{display:block;font-size:12px;font-weight:bold;margin-bottom:6px}
+input,select,textarea{width:100%;padding:12px;border:1px solid #cfdbe2;border-radius:8px;font:inherit;color:var(--ink);background:#fff}textarea{min-height:90px}
+button{background:var(--teal);color:#062d31;border:0;border-radius:9px;padding:13px 18px;font-weight:bold;cursor:pointer;margin-top:15px}button:disabled{opacity:.55;cursor:wait}
+.status{font-size:13px;margin-top:12px;color:var(--muted)}.result{display:none}.result h3{color:#087f78;margin:0 0 9px}.result section{background:#f8fbfc;border:1px solid var(--line);border-radius:10px;padding:15px;margin:12px 0;break-inside:avoid}
+.result li{margin:7px 0;line-height:1.45}.result p{line-height:1.5}.tag{display:inline-block;background:#e5f7f5;color:#087f78;padding:5px 9px;border-radius:20px;font-size:11px;font-weight:bold}
+footer{text-align:center;color:#84929d;font-size:12px;padding:20px}
+@media(max-width:600px){.fields{grid-template-columns:1fr}h1{font-size:24px}header{padding:14px}}
+@media print{header,.form,.hero,footer,.no-print{display:none!important}body{background:#fff}.result{display:block!important}.panel{border:0;padding:0}}
+</style></head>
+<body>
+<header><div class="logo">DIGIORA<small>Ora mësimore në epokën digjitale</small></div><span class="tag">ASISTENTI PEDAGOGJIK</span></header>
+<main>
+<div class="hero"><div class="tag">KRIJO ORËN E PLOTË</div><h1>Një temë. Një paketë e gatshme për klasën.</h1><p>Shkruaj temën dhe të dhënat e orës. Asistenti pedagogjik do të përgatisë planin, aktivitetet, kuizin, fletën e punës dhe idetë për prezantim.</p></div>
+<div class="panel form">
+<h2>Të dhënat e orës</h2><p class="muted">Mos vendos emra, të dhëna personale ose informacione sensitive të nxënësve.</p>
+<div class="fields">
+<div><label for="grade">Klasa</label><select id="grade"><option>Klasa I</option><option>Klasa II</option><option selected>Klasa III</option><option>Klasa IV</option><option>Klasa V</option><option>Klasa VI</option><option>Klasa VII</option><option>Klasa VIII</option><option>Klasa IX</option></select></div>
+<div><label for="subject">Lënda</label><input id="subject" value="Anglisht"></div>
+<div><label for="topic">Tema mësimore</label><input id="topic" placeholder="P.sh. The verb to be" required></div>
+<div><label for="type">Lloji i orës</label><select id="type"><option>Orë e re</option><option>Përforcim</option><option>Përsëritje</option><option>Projekt</option><option>Orë digjitale</option></select></div>
+<div><label for="duration">Kohëzgjatja</label><select id="duration"><option>45 minuta</option><option>90 minuta</option><option>2 orë mësimore</option></select></div>
+<div><label for="level">Niveli</label><select id="level"><option>Fillestar</option><option selected>Mesatar</option><option>I avancuar</option></select></div>
+<div style="grid-column:1/-1"><label for="notes">Kërkesa të veçanta (opsionale)</label><textarea id="notes" placeholder="P.sh. punë në grupe, tabelë interaktive, përshtatje për nivele të ndryshme..."></textarea></div>
+</div>
+<button id="generate" onclick="generate()">Gjenero paketën me IA</button>
+<button class="no-print" onclick="window.print()" style="background:#e8eef2;color:#294153;margin-left:6px">Printo</button>
+<div class="status" id="status" role="status"></div>
+</div>
+<div class="panel result" id="result"><div class="tag">MATERIAL I GJENERUAR</div><h2 id="title"></h2><div id="content"></div></div>
+</main><footer>DIGIORA · Paketë fillestare teknike · Publikimi kërkon konfigurimin e llogarive dhe çelësave API</footer>
+<script>
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function render(data){
+ const sections=[
+ ["Rezultatet e të nxënit",data.learning_outcomes],
+ ["Fjalët kyçe",data.key_words],
+ ["Burimet dhe lidhja ndërkurrikulare",data.resources_cross_curricular],
+ ["Metodologjia dhe rrjedha e orës",data.lesson_flow],
+ ["Kuizi – pyetje dhe përgjigje",data.quiz],
+ ["Fleta e punës",data.worksheet],
+ ["Detyrat e diferencuara",data.homework],
+ ["Vlerësimi",data.assessment],
+ ["Prezantimi digjital",data.presentation_outline],
+ ["Ide për mjete digjitale",data.digital_tools]
+ ];
+ document.getElementById("content").innerHTML=sections.map(([name,val])=>{
+  let body=Array.isArray(val)?'<ol>'+val.map(x=>'<li>'+esc(typeof x==="string"?x:JSON.stringify(x))+'</li>').join('')+'</ol>':'<p>'+esc(val||"—")+'</p>';
+  return '<section><h3>'+esc(name)+'</h3>'+body+'</section>';
+ }).join('');
+ document.getElementById("result").style.display="block";
+}
+async function generate(){
+ const topic=document.getElementById("topic").value.trim();
+ if(!topic){document.getElementById("status").textContent="Shkruaj temën mësimore.";return;}
+ const payload={grade:document.getElementById("grade").value,subject:document.getElementById("subject").value.trim(),topic,type:document.getElementById("type").value,duration:document.getElementById("duration").value,level:document.getElementById("level").value,notes:document.getElementById("notes").value.trim()};
+ const btn=document.getElementById("generate"),status=document.getElementById("status");
+ btn.disabled=true;status.textContent="Po përgatitet paketa mësimore…";
+ try{
+  const res=await fetch("/api/lesson",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+  const json=await res.json();if(!res.ok)throw new Error(json.error||"Gabim gjatë gjenerimit.");
+  document.getElementById("title").textContent=payload.grade+" · "+payload.subject+" · "+payload.topic;
+  render(json);status.textContent="Paketa u krijua. Kontrollo dhe përshtat materialet para përdorimit.";
+  document.getElementById("result").scrollIntoView({behavior:"smooth"});
+ }catch(e){status.textContent="Nuk u lidh me shërbimin e IA-së: "+e.message+" Nëse faqja po hapet lokalisht, backend-i ende nuk është konfiguruar.";}
+ finally{btn.disabled=false;}
+}
+</script></body></html>
